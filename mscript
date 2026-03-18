@@ -2,14 +2,16 @@
 
 # Algorithm for making template of Bash scripts
 
+cmd_use=vim
+
 if [ $# -ne 0 ] && [ -n "$1" ]; then
     if [ -f "$1" ]; then
-        vim "$1"
+        $cmd_use "$1" || echo "Can't find program $cmd_use"
         exit
     fi
     echo -e "#!/bin/bash\n\n# $1\n\n" > "$1"
     chmod +x "$1"
-    vim "$1"
+    $cmd_use "$1" || echo "Can't find program $cmd_use"
 else
     echo "Script must have a name."
 fi
