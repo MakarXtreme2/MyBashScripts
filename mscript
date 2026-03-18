@@ -4,12 +4,12 @@
 
 if [ $# -ne 0 ] && [ -n "$1" ]; then
     if [ -f "$1" ]; then
-        vi "$1"
+        vim "$1"
         exit
     fi
     echo -e "#!/bin/bash\n\n# $1\n\n" > "$1"
     chmod +x "$1"
-    vi "$1"
+    vim "$1"
 else
     echo "Script must have a name."
 fi
