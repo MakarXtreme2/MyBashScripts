@@ -2,18 +2,75 @@
 
 # Algorithm for making template of Bash scripts
 
-cmd_use=vim
+standard_use () {
 
-if [ $# -ne 0 ] && [ -n "$1" ]; then
-    if [ -f "$1" ]; then
-        $cmd_use "$1"
-        exit
-    fi
-    echo -e "#!/bin/bash\n\n# $1\n\n" > "$1"
-    chmod +x "$1"
-    $cmd_use "$1"
-else
-    echo "Script must have a name."
-fi
+	local cmd_use=$1
+	local name_script=$2
+
+	if [ $# -ne 0 ] && [ -n "$name_script" ]; then
+		if [ -f "$name_script" ]; then
+			$cmd_use "$name_script"
+			return
+		fi
+		echo -e "#!/bin/bash\n\n# $name_script\n\n" > "$name_script"
+		chmod +x "$name_script"
+		$cmd_use "$name_script"
+	else
+		echo "Script must have a name."
+	fi
+	return
+
+}
+
+print_info () {
+
+	cat <<- _EOF_
+
+		Usage: mscript [OPTION]... [FILE]
+		Create script with sheband "#/bin/bash"
+		Set mode to execute the file
+		Launch script with certain file editor (vim by default)
+
+		Options:
+			-h, --help					show help information
+			-c, --copy FILE					create script with description from another file
+			-e, --editor EDITOR				use certain editor
+
+	_EOF_
+	return
+}
+
+input_handle () {
+
+	local name_editor="vim"
+	local name_script=
+
+	while [[ -n "$1" ]]; do
+		case "$1" in
+			-h | --help)	print_info
+							;;
+			-c | --copy)	;;
+			-e | --editor)	shift
+							if [ -n "$1" ]; then
+								if command -v "$1" >/dev/null 2>$1; then
+									name_editor="$1"
+								fi
+							else
+								echo "Editor must have a name" >&2
+								exit 1
+							fi
+							;;
+			*)				name_script="$1"
+							;;
+		esac
+		shift
+	done
+
+	standard_use "$name_editor" "$name_script"
+
+	return
+}
+
+input_handle "$@"
 exit
 
