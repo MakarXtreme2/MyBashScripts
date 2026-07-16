@@ -33,7 +33,8 @@ print_info () {
 
 		Options:
 			-h, --help					show help information
-			-c, --copy FILE					create script with description from another file
+			-c, --copy FILE					copy text of script from another file
+			-p, --partially-copy FILE			copy text of script from another file without name and shebang 		
 			-e, --editor EDITOR				use certain editor
 
 	_EOF_
@@ -44,29 +45,71 @@ input_handle () {
 
 	local name_editor="vim"
 	local name_script=
+	local name_copy=
+	local -A executed_ops=(
+		["copy"]=0
+		["editor"]=0
+	)
 
 	while [[ -n "$1" ]]; do
 		case "$1" in
-			-h | --help)	print_info
-							;;
-			-c | --copy)	;;
-			-e | --editor)	shift
-							if [ -n "$1" ]; then
-								if command -v "$1" >/dev/null 2>&1; then
-									name_editor="$1"
-								fi
-							else
-								echo "Editor must have a name" >&2
-								exit 1
-							fi
-							;;
-			*)				name_script="$1"
-							;;
+			-h | --help)						print_info
+															return
+															;;
+
+			-c | --copy)						if (( executed_ops["copy"] == 0 )); then
+																executed_ops["copy"]=1
+																shift
+																if [ -n "$1" ]; then
+																	name_copy="$1"
+																else
+																	echo "You should specify the name of file you want to copy" >&2
+																	exit 1
+																fi
+																if [ ! -f "$1" ]; then
+																	echo "The file you want to copy doesn't exist" >&2
+																	exit 1
+																fi
+															fi
+															;;
+
+			-p | --partially-copy)	if (( executed_ops["copy"] == 0 )); then
+																executed_ops["copy"]=2
+																shift
+																if [ -n "$1" ]; then
+																	name_copy="$1"
+																else
+																	echo "You should specify the name of file you want to copy" >&2
+																	exit 1
+																fi
+																if [ ! -f "$1" ]; then
+																	echo "The file you want to copy doesn't exist" >&2
+																	exit 1
+																fi
+															fi
+															;;
+
+			-e | --editor)					if (( executed_ops["editor"] == 0 )); then
+																executed_ops["editor"]=1
+																shift
+																if [ -n "$1" ]; then
+																	if command -v "$1" >/dev/null 2>&1; then
+																		name_editor="$1"
+																	fi
+																else
+																	echo "Editor must have a name" >&2
+																	exit 1
+																fi
+															fi
+															;;
+
+			*)											name_script="$1"
+															;;
 		esac
 		shift
 	done
 
-	standard_use "$name_editor" "$name_script"
+	standard_use "$name_editor" "$name_script" "$name_copy" "${executed_ops["copy"]}"
 
 	return
 }
