@@ -52,7 +52,7 @@ input_handle () {
 			-c | --copy)	;;
 			-e | --editor)	shift
 							if [ -n "$1" ]; then
-								if command -v "$1" >/dev/null 2>$1; then
+								if command -v "$1" >/dev/null 2>&1; then
 									name_editor="$1"
 								fi
 							else
